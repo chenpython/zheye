@@ -20,25 +20,22 @@ def CAPTCHA_to_data(filename):
     height=88
     padding=20
     padding_color = 249
-    
+
     captcha = Image.open(filename)
 
     bg = numpy.full((height+padding*2, width+padding*2), padding_color, dtype='uint8')
     fr = numpy.asarray(captcha.convert('L'))
     bg[padding:padding+height,padding:padding+width] = fr
-    
+
     black_pixel_indexes = numpy.transpose(numpy.nonzero(bg <= 150))
     gmm = sklearn.mixture.GaussianMixture(n_components=7, covariance_type='tied', reg_covar=1e2, tol=1e3, n_init=9)
     gmm.fit(black_pixel_indexes)
-        
-    indexes = gmm.means_.astype(int).tolist()
-    new_indexes = []
-    for [y, x] in indexes:
-        new_indexes.append((y - padding, x - padding))
 
+    indexes = gmm.means_.astype(int).tolist()
+    new_indexes = [(y - padding, x - padding) for [y, x] in indexes]
     data = numpy.empty((0, 40, 40), 'float32')
     full_image = data_to_image(bg)
-    
+
     for [y, x] in new_indexes:
         cim = full_image.crop((x, y, x + padding*2, y + padding*2))
         X = numpy.asarray(cim.convert('L')).astype('float32')
@@ -47,7 +44,7 @@ def CAPTCHA_to_data(filename):
         X[X >  150] = 1
         # white
         data = numpy.append(data, X.reshape(1, 40, 40), axis=0)
-        
+
 
     return data, new_indexes
 
