@@ -14,10 +14,11 @@ def random_character():
     '''
      
     head = random.randint(0xb0, 0xf7)
-    if head == 0xd7:
-        body = random.randint(0xa1, 0xf9)
-    else:
-        body = random.randint(0xa1, 0xfe)
+    body = (
+        random.randint(0xA1, 0xF9)
+        if head == 0xD7
+        else random.randint(0xA1, 0xFE)
+    )
     val = f"{head:x}{body:x}"
     return bytes.fromhex(val).decode("gb2312")
 
@@ -86,7 +87,7 @@ def generate_a_batch(s):
     
     inputs = []
     labels = []
-    for i in range(s):
+    for _ in range(s):
         c = random_character()
         image = character_to_image(c)
         X, Y = image_to_training_data(image)
